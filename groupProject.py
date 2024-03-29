@@ -1,5 +1,6 @@
 import numpy as np
 from enum import Enum
+import my_enums
 from PdWorld import PdWorld
 
 class Actions(Enum):
@@ -183,16 +184,17 @@ for episode in range(num_episodes):
         action = np.random.choice([a for a in range(num_actions) if is_action_applicable(a, state, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)])
         
         # Execute the action, get the new state and reward
-        next_state, reward, done = world.transition(state, action)
+        position = state[0], state[1] # red agent
+
+        next_state, reward, done = world.transition(position, action)
         
         # Step 3: Update the Q-table  actions, pickups, dropoffs
-        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, pick)
+        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)
         
         # Prepare for the next iteration
         state = next_state
         
         if count >= 9000:
             done = True
-
 
 print(q_table)

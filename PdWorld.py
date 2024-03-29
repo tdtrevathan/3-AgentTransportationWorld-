@@ -1,3 +1,6 @@
+from enum import Enum
+import my_enums
+
 class PdWorld:
     def __init__(self, rows, cols, pickup_locations, dropoff_locations, red_agent, blue_agent, black_agent):
         self.rows = rows
@@ -29,6 +32,7 @@ class PdWorld:
 
     def transition(self, position, action):
         x, y = position
+
         if action == 'up':
             new_position = (max(x-1, 0), y)
         elif action == 'down':
@@ -38,16 +42,16 @@ class PdWorld:
         elif action == 'right':
             new_position =  (x, min(y+1, self.rows-1))
 
-        original = self.grid[position[0], position[1]]
-        replacement = self.grid[new_position[0], new_position[1]]
+        original = self.grid[position[0]][position[1]]
+        replacement = self.grid[new_position[0]][new_position[1]]
         
-        self.grid[new_position[0], new_position[1]] = original
-        self.grid[position[0], position[1]] = replacement
+        self.grid[new_position[0]][new_position[1]] = original
+        self.grid[position[0]][position[1]] = replacement
         
         return -1, new_position
         
     def performAction(self, position, action):
-        if (action == 'pickup' or action == 'dropoff'):
+        if (action != 'pickup' and action != 'dropoff'):
             self.transition(position, action)
         else:
             if action == 'pickup':
