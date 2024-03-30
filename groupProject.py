@@ -170,6 +170,7 @@ q_table[(redInitialState, first_action)] = 0
 #get next action
 
 num_episodes =  1
+agent = my_enums.Agent.RED
 
 state = redInitialState
 for episode in range(num_episodes):
@@ -184,9 +185,8 @@ for episode in range(num_episodes):
         action = np.random.choice([a for a in range(num_actions) if is_action_applicable(a, state, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)])
         
         # Execute the action, get the new state and reward
-        position = state[0], state[1] # red agent
 
-        next_state, reward, done = world.transition(position, action)
+        next_state, reward, carry, done = world.performAction(state, action, agent)
         
         # Step 3: Update the Q-table  actions, pickups, dropoffs
         update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)

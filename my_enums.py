@@ -12,3 +12,8 @@ class ExplorationMethod(Enum):
     PRANDOM = 1
     PEXPLOIT = 2
     PGREED = 3
+    
+class Agent(Enum):
+    RED = 1
+    BLUE = 2
+    BLACK = 3

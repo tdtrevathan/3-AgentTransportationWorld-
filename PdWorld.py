@@ -39,7 +39,7 @@ class PdWorld:
             new_position =  (min(x+1, self.rows-1), y)
         elif action == 'left':
             new_position =  (x, max(y-1, 0))
-        elif action == 'right':
+        else: #action == 'right'
             new_position =  (x, min(y+1, self.rows-1))
 
         original = self.grid[position[0]][position[1]]
@@ -49,17 +49,44 @@ class PdWorld:
         self.grid[position[0]][position[1]] = replacement
         
         return -1, new_position
+    
+    def get_agent_position_and_block_status(self, state, agent):
+        print("steate")
+        print(state)
+        if agent == my_enums.Agent.RED:
+            position = state[0], state[1]
+            block_status = state[6]
+            
+        elif agent == my_enums.Agent.BLUE:
+            position = state[2], state[3]
+            block_status = state[7]
+            
+        else:
+            position = state[4], state[5]
+            block_status = state[8]
+            
+        return position, block_status
+    
+    def performAction(self, state, action, agent):
+        print(action)
         
-    def performAction(self, position, action):
+        position, block_status = self.get_agent_position_and_block_status(state, agent)
+
         if (action != 'pickup' and action != 'dropoff'):
-            self.transition(position, action)
+            result = self.transition(position, action)
+            return result[0], result[1], block_status, False
         else:
             if action == 'pickup':
                 #impliment pickup
-                return state
+                block_status = 1
+                return 13, position, block_status, False
             elif action == 'pickup':
                 #impliment pickup
-                return state
+                block_status = 0
+                return 13, position, block_status, False
+            
+
+            
             
 
 #pickup reward = 13
