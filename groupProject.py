@@ -1,20 +1,6 @@
 import numpy as np
-from enum import Enum
 import my_enums
 from PdWorld import PdWorld
-
-class Actions(Enum):
-    UP = 1
-    DOWN = 2
-    LEFT = 3
-    RIGHT = 4
-    PICKUP = 5
-    DROPOFF = 6
-
-class ExplorationMethod(Enum):
-    PRANDOM = 1
-    PEXPLOIT = 2
-    PGREED = 3
 
 def generate_surrounding_statuses(agent_position, grid):
     """
@@ -52,41 +38,6 @@ def generate_surrounding_statuses(agent_position, grid):
     return surroundings
 
 
-def is_action_applicable(action, state, pickup_locations, dropoff_locations, pickup_status, dropoff_status):
-    
-    grid_max_x, grid_max_y = MAX_X - 1, MAX_Y - 1 
-     
-    agent_x, agent_y, carrying_block = state[:3]
-    
-    # Check if moving off the grid
-    if action == "up" and agent_y == 0:
-        return False
-    if action == "down" and agent_y == grid_max_x:
-        return False
-    if action == "left" and agent_x == 0:
-        return False
-    if action == "right" and agent_x == grid_max_y:
-        return False
-
-    # Check if trying to pick up or drop off without being in the correct location
-    if action == "pickup" or action == "dropoff":
-        adjacent_locations = [(agent_x-1, agent_y), (agent_x+1, agent_y), (agent_x, agent_y-1), (agent_x, agent_y+1)]
-        applicable = False
-        
-        if action == "pickup":
-            # Can only pick up if not carrying a block and at a pickup location with available blocks
-            applicable = not carrying_block and any(loc in pickup_locations and pickup_status[loc] > 0 for loc in adjacent_locations)
-        elif action == "dropoff":
-            # Can only drop off if carrying a block and at a dropoff location that is not full
-            applicable = carrying_block and any(loc in dropoff_locations and dropoff_status[loc] < BLOCK_CAPACITY for loc in adjacent_locations)
-
-        return applicable
-    
-    # Default case: if the action is not one of the above, it's applicable
-    return True
-
-
-
 def update_q_value(q_table, 
                    state,
                    action,
@@ -95,13 +46,11 @@ def update_q_value(q_table,
                    alpha,
                    gamma,
                    actions,
-                   pickup_locations,
-                   dropoff_locations,
-                   pickup_ammounts,
-                   dropoff_ammounts):
+                   agent,
+                   world):
     
     # Get the Q-values for the next state, filter for applicable actions only
-    next_q_values = np.array([q_table[next_state, a] if is_action_applicable(a, next_state, pickup_locations, dropoff_locations, pickup_ammounts, dropoff_ammounts) else -np.inf for a in range(actions)])
+    next_q_values = np.array([q_table[next_state, a] if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
     
     # Compute the maximum Q-value for the next state from applicable actions
     max_next_q = np.max(next_q_values)
@@ -123,11 +72,15 @@ def update_q_value(q_table,
 # Running experiments with different configurations
 
 # Visualization and analysis of results
+        
 
 BLOCK_CAPACITY = 5
 
 # Define movement boundaries
 MAX_X, MAX_Y = 5, 5
+
+MOVEMENT_PENALTY = -1
+BLOCK_REWARD = 13
 
 q_table = {}  # Use a dict for sparse storage
 
@@ -145,51 +98,36 @@ initial_steps = 500
 second_phase_steps = 8500
 
 
-world = PdWorld(MAX_X, MAX_Y, pickup_locations, dropoff_locations, black_agent, blue_agent, red_agent)
+world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, black_agent, blue_agent, red_agent, MOVEMENT_PENALTY, BLOCK_REWARD)
 world.display()
 
-pickup_dictionary = { 
-                        pickup_locations[0]: 5, 
-                        pickup_locations[1]: 5, 
-                        pickup_locations[2]: 5 
-                    }
-
-dropoff_dictionary = { 
-                        dropoff_locations[0]: 0, 
-                        dropoff_locations[1]: 0, 
-                        dropoff_locations[2]: 0 
-                    }
-
-first_action = Actions.LEFT #Chosen left arbitrarily since we dont have a random or evaluation function yet
-
-#red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks
-redInitialState = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5)
-
-q_table[(redInitialState, first_action)] = 0
-
-#get next action
+#red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
+redInitialState = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5, 0, 0, 0)
 
 num_episodes =  1
 agent = my_enums.Agent.RED
-
 state = redInitialState
+
 for episode in range(num_episodes):
     #state = env.reset()  # Assuming an environment 'env' that can reset to start state
     
-    num_actions = len(Actions)
+    num_actions = len(my_enums.Actions)
     
     done = False
     count = 0
     while not done:
         # Step 2: Select action randomly
-        action = np.random.choice([a for a in range(num_actions) if is_action_applicable(a, state, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)])
+        action = np.random.choice([a for a in range(num_actions) if world.is_action_applicable(a, agent)])
         
+        
+        print(state)
         # Execute the action, get the new state and reward
-
-        next_state, reward, carry, done = world.performAction(state, action, agent)
+        reward, *next_state, done = world.performAction(action, agent)
         
+        next_state = tuple(next_state)
+        print(next_state)
         # Step 3: Update the Q-table  actions, pickups, dropoffs
-        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)
+        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, agent, world)
         
         # Prepare for the next iteration
         state = next_state
