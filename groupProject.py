@@ -10,51 +10,10 @@ class Actions(Enum):
     PICKUP = 5
     DROPOFF = 6
 
-#class Cell_Stauts(Enum):
-#    EMPTY = 1
-#    OCCUPIED = 2
-#    PICKUP_STATION = 3
-#    DROPOFF_STATION = 4
-
-
-#class Agent:
-#    def __init__(self, start_position, agent_type):
-#        self.position = start_position
-#        self.agent_type = agent_type
-#        self.has_block = False
-#
-#    def move(self, action, grid_size):
-#        # Update self.position based on the action
-#        # Ensure movements are within grid bounds
-#        pass
-#
-#    def update_status(self, environment):
-#        # Handle interactions, like picking up or dropping a block
-#        pass
-
-#def get_valid_actions(surroundings, carrying_block):
-#
-#    available_actions = []
-#    # Check for movement actions based on surroundings
-#    if surroundings[0] == Cell_Status.EMPTY:  # Up is free
-#        actions.append(Actions.UP)
-#    if surroundings[1] == Cell_Status.EMPTY:  # Right is free
-#        actions.append(Actions.RIGHT)
-#    if surroundings[2] == Cell_Status.EMPTY:  # Down is free
-#        actions.append(Actions.DOWN)
-#    if surroundings[3] == Cell_Status.EMPTY:  # Left is free
-#        actions.append(Actions.LEFT)
-#
-#    # Check for pickup action
-#    if not carrying_block and (PICKUP_STATION in surroundings):
-#        actions.append(Actions.PICKUP)
-#
-#    # Check for drop-off action
-#    if carrying_block and (DROPOFF_STATION in surroundings):
-#        actions.append(Actions.DROPOFF)
-#
-#    return available_actions
-
+class ExplorationMethod(Enum):
+    PRANDOM = 1
+    PEXPLOIT = 2
+    PGREED = 3
 
 def generate_surrounding_statuses(agent_position, grid):
     """
@@ -127,9 +86,21 @@ def is_action_applicable(action, state, pickup_locations, dropoff_locations, pic
 
 
 
-def update_q_value(q_table, state, action, reward, next_state, alpha, gamma, actions, pickups, dropoffs):
+def update_q_value(q_table, 
+                   state,
+                   action,
+                   reward,
+                   next_state,
+                   alpha,
+                   gamma,
+                   actions,
+                   pickup_locations,
+                   dropoff_locations,
+                   pickup_ammounts,
+                   dropoff_ammounts):
+    
     # Get the Q-values for the next state, filter for applicable actions only
-    next_q_values = np.array([q_table[next_state, a] if is_action_applicable(a, next_state) else -np.inf for a in range(actions)])
+    next_q_values = np.array([q_table[next_state, a] if is_action_applicable(a, next_state, pickup_locations, dropoff_locations, pickup_ammounts, dropoff_ammounts) else -np.inf for a in range(actions)])
     
     # Compute the maximum Q-value for the next state from applicable actions
     max_next_q = np.max(next_q_values)
@@ -165,6 +136,14 @@ blue_agent = [(2,2)]
 black_agent = [(0,2)]
 red_agent = [(4,2)]
 
+total_steps = 9000
+alpha = 0.3
+gamma = 0.5
+
+initial_steps = 500
+second_phase_steps = 8500
+
+
 world = PdWorld(MAX_X, MAX_Y, pickup_locations, dropoff_locations, black_agent, blue_agent, red_agent)
 world.display()
 
@@ -186,3 +165,34 @@ first_action = Actions.LEFT #Chosen left arbitrarily since we dont have a random
 redInitialState = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5)
 
 q_table[(redInitialState, first_action)] = 0
+
+#get next action
+
+num_episodes =  1
+
+state = redInitialState
+for episode in range(num_episodes):
+    #state = env.reset()  # Assuming an environment 'env' that can reset to start state
+    
+    num_actions = len(Actions)
+    
+    done = False
+    count = 0
+    while not done:
+        # Step 2: Select action randomly
+        action = np.random.choice([a for a in range(num_actions) if is_action_applicable(a, state, pickup_locations, dropoff_locations, pickup_dictionary, dropoff_dictionary)])
+        
+        # Execute the action, get the new state and reward
+        next_state, reward, done = world.transition(state, action)
+        
+        # Step 3: Update the Q-table  actions, pickups, dropoffs
+        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, pick)
+        
+        # Prepare for the next iteration
+        state = next_state
+        
+        if count >= 9000:
+            done = True
+
+
+print(q_table)
