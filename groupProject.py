@@ -119,7 +119,6 @@ for episode in range(num_episodes):
         # Step 2: Select action randomly
         action = np.random.choice([a for a in range(num_actions) if world.is_action_applicable(a, agent)])
         
-        
         print(state)
         # Execute the action, get the new state and reward
         reward, *next_state, done = world.performAction(action, agent)
