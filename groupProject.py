@@ -48,15 +48,15 @@ def update_q_value(q_table,
                    actions,
                    agent,
                    world):
-    
+
     # Get the Q-values for the next state, filter for applicable actions only
-    next_q_values = np.array([q_table[next_state, a] if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
+    next_q_values = np.array([q_table.get((next_state, a), 0) if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
     
     # Compute the maximum Q-value for the next state from applicable actions
     max_next_q = np.max(next_q_values)
     
     # Q-learning formula
-    q_table[state, action] = (1 - alpha) * q_table[state, action] + alpha * (reward + gamma * max_next_q)
+    q_table[state, action] = (1 - alpha) * q_table.get((state, action), 0) + alpha * (reward + gamma * max_next_q)
 
 #def sarsa_update(state, action, reward, next_state, next_action):
 # Implement SARSA update
@@ -119,19 +119,22 @@ for episode in range(num_episodes):
         # Step 2: Select action randomly
         action = np.random.choice([a for a in range(num_actions) if world.is_action_applicable(a, agent)])
         
-        print(state)
         # Execute the action, get the new state and reward
-        reward, *next_state, done = world.performAction(action, agent)
-        
-        next_state = tuple(next_state)
-        print(next_state)
+        reward, done, *next_state = world.performAction(action, agent)
+
+        next_state = tuple(next_state[0])
+
         # Step 3: Update the Q-table  actions, pickups, dropoffs
         update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, agent, world)
         
         # Prepare for the next iteration
         state = next_state
         
-        if count >= 9000:
+        count += 1
+
+        print("count: {}".format(count))
+        print()
+        world.display()
+        if count >= 5:
             done = True
 
-print(q_table)

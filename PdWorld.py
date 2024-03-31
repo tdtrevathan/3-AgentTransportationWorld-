@@ -30,14 +30,29 @@ class PdWorld:
 
     def _init_locations(self):
         for row, col in self.pickup_locations:
+            print('pickup')
+            print(row)
+            print(col)
             self.grid[row][col] = 'P'
         for row, col in self.dropoff_locations:
+            print('dropoff')
+            print(row)
+            print(col)
             self.grid[row][col] = 'D'
         for row, col in self.black_agent:
+            print('blue')
+            print(row)
+            print(col)
             self.grid[row][col] = 'b'
         for row, col in self.blue_agent:
+            print('black')
+            print(row)
+            print(col)
             self.grid[row][col] = 'B'
         for row, col in self.red_agent:
+            print('red')
+            print(row)
+            print(col)
             self.grid[row][col] = 'R'
     
     def _init_block_capacities(self):
@@ -59,6 +74,7 @@ class PdWorld:
         self.black_carry = 0
 
     def display(self):
+        self._init_locations()
         for row in self.grid:
             print('|' + '|'.join(row) + '|')
 
@@ -158,7 +174,7 @@ class PdWorld:
             self.update_carry(action, agent, carry_status)
         
                     
-        return reward, self.get_updated_state(), terminal_state_reached
+        return reward, terminal_state_reached, self.get_updated_state()
     
     def get_updated_state(self):
 
