@@ -17,3 +17,4 @@ class Agent(Enum):
     RED = 1
     BLUE = 2
     BLACK = 3
+    

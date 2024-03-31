@@ -87,7 +87,7 @@ q_table = {}  # Use a dict for sparse storage
 pickup_locations = [(0, 4), (1, 3), (3, 2)]
 dropoff_locations = [(0, 0), (2, 0), (3, 4)]
 blue_agent = [(2,2)]
-black_agent = [(0,2)]
+black_agent =[(0,2)]
 red_agent = [(4,2)]
 
 total_steps = 9000
@@ -98,7 +98,7 @@ initial_steps = 500
 second_phase_steps = 8500
 
 
-world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, black_agent, blue_agent, red_agent, MOVEMENT_PENALTY, BLOCK_REWARD)
+world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (black_agent, my_enums.Agent.BLACK), (blue_agent, my_enums.Agent.BLUE), (red_agent, my_enums.Agent.RED), MOVEMENT_PENALTY, BLOCK_REWARD)
 world.display()
 
 #red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
@@ -107,6 +107,10 @@ redInitialState = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5, 0, 0, 0)
 num_episodes =  1
 agent = my_enums.Agent.RED
 state = redInitialState
+
+if ([(0,1)] == [(2,1)]):
+    print('contents dont matter')
+
 
 for episode in range(num_episodes):
     #state = env.reset()  # Assuming an environment 'env' that can reset to start state
@@ -117,8 +121,9 @@ for episode in range(num_episodes):
     count = 0
     while not done:
         # Step 2: Select action randomly
-        action = np.random.choice([a for a in range(num_actions) if world.is_action_applicable(a, agent)])
-        
+        action = np.random.choice([a for a in my_enums.Actions if world.is_action_applicable(a, agent)])
+        print('action')
+        print(action)
         # Execute the action, get the new state and reward
         reward, done, *next_state = world.performAction(action, agent)
 
@@ -135,6 +140,7 @@ for episode in range(num_episodes):
         print("count: {}".format(count))
         print()
         world.display()
-        if count >= 5:
+        if count >= 10:
             done = True
 
+print(q_table)

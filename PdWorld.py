@@ -29,30 +29,19 @@ class PdWorld:
         self._init_carry()
 
     def _init_locations(self):
+
+        for row in range(len(self.grid)):
+            for col in range(len(self.grid[0])):
+                self.grid[row][col] = ' '
         for row, col in self.pickup_locations:
-            print('pickup')
-            print(row)
-            print(col)
             self.grid[row][col] = 'P'
         for row, col in self.dropoff_locations:
-            print('dropoff')
-            print(row)
-            print(col)
             self.grid[row][col] = 'D'
-        for row, col in self.black_agent:
-            print('blue')
-            print(row)
-            print(col)
+        for row, col in self.black_agent[0]:
             self.grid[row][col] = 'b'
-        for row, col in self.blue_agent:
-            print('black')
-            print(row)
-            print(col)
+        for row, col in self.blue_agent[0]:
             self.grid[row][col] = 'B'
-        for row, col in self.red_agent:
-            print('red')
-            print(row)
-            print(col)
+        for row, col in self.red_agent[0]:
             self.grid[row][col] = 'R'
     
     def _init_block_capacities(self):
@@ -80,20 +69,27 @@ class PdWorld:
 
     def is_action_applicable(self, action, agent):
     
-        grid_max_x, grid_max_y = self.rows - 1, self.cols - 1 
+        grid_max_x, grid_max_y = self.rows, self.cols 
 
         position, carrying_block = self.get_agent_position_and_block_status(agent)
 
-        agent_x, agent_y = position[0]
+        potential_position = self.transition(position, action)
+
+        if agent != self.blue_agent[1] and potential_position == self.blue_agent[0][0]:
+            return False
+        if agent != self.black_agent[1] and potential_position == self.black_agent[0][0]:
+            return False
+        if agent != self.red_agent[1] and potential_position == self.red_agent[0][0]:
+            return False
 
         # Check if moving off the grid
-        if action == my_enums.Actions.UP and agent_y == 0:
+        if action == my_enums.Actions.UP and potential_position[1] < 0:
             return False
-        if action == my_enums.Actions.DOWN and agent_y == grid_max_x:
+        if action == my_enums.Actions.DOWN and potential_position[1] > grid_max_y:
             return False
-        if action == my_enums.Actions.LEFT and agent_x == 0:
+        if action == my_enums.Actions.LEFT and potential_position[0] < 0:
             return False
-        if action == my_enums.Actions.RIGHT and agent_x == grid_max_y:
+        if action == my_enums.Actions.RIGHT and potential_position[0] > grid_max_x:
             return False
 
         # Check if trying to pick up or drop off without being in the correct location
@@ -113,25 +109,33 @@ class PdWorld:
         # Default case: if the action is not one of the above, it's applicable
         return True
     
-    def transition(self, position, action, agent):
+    def apply_transition(self, position, action, agent):
+
+        new_position = self.transition(position, action)
+        
+        x, y = position[0]
+
+        if agent == my_enums.Agent.RED:
+            self.red_agent = [new_position], my_enums.Agent.RED
+            
+        elif agent == my_enums.Agent.BLUE:
+            self.blue_agent = [new_position], my_enums.Agent.BLUE
+        else:
+            self.black_agent = [new_position], my_enums.Agent.BLACK
+            
+    def transition(self, position, action):
         x, y = position[0]
 
         if action == my_enums.Actions.UP:
-            new_position = (max(x-1, 0), y)
+            new_position = (x-1, y)
         elif action == my_enums.Actions.DOWN:
-            new_position =  (min(x+1, self.rows-1), y)
+            new_position =  (x+1, y)
         elif action == my_enums.Actions.LEFT:
-            new_position =  (x, max(y-1, 0))
+            new_position =  (x, y-1)
         else: #action == my_enums.Actions.RIGHT
-            new_position =  (x, min(y+1, self.rows-1))
+            new_position =  (x, y+1)
 
-        if agent == my_enums.Agent.RED:
-            self.red_agent = [new_position]
-            
-        elif agent == my_enums.Agent.BLUE:
-            self.blue_agent = [new_position]
-        else:
-            self.black_agent = [new_position]
+        return new_position
             
     def update_carry(self, agent, update):
         if agent == my_enums.Agent.RED:
@@ -144,11 +148,11 @@ class PdWorld:
     def get_agent_position_and_block_status(self, agent):
 
         if agent == my_enums.Agent.RED:
-            return self.red_agent, self.red_carry
+            return self.red_agent[0], self.red_carry
         elif agent == my_enums.Agent.BLUE:
-            return self.blue_agent, self.blue_carry
+            return self.blue_agent[0], self.blue_carry
         else:
-            return self.black_agent, self.black_carry
+            return self.black_agent[0], self.black_carry
     
     def performAction(self, action, agent):
         
@@ -159,17 +163,17 @@ class PdWorld:
         if (action != my_enums.Actions.PICKUP and action != my_enums.Actions.DROPOFF):
             reward = self.movement_penalty
             
-            self.transition(position, action, agent)
+            self.apply_transition(position, action, agent)
         else:
             reward = self.block_reward
             
             if action == my_enums.Actions.PICKUP:
                 carry_status = 1
-                self.pickup_dictionary[position] -= 1
+                self.pickup_dictionary[position[0]] -= 1
             
             elif action == my_enums.Actions.PICKUP:
                 carry_status  = 0
-                self.dropoff_dictionary[position] += 1
+                self.dropoff_dictionary[position[0]] += 1
             
             self.update_carry(action, agent, carry_status)
         
@@ -178,12 +182,12 @@ class PdWorld:
     
     def get_updated_state(self):
 
-        return (self.red_agent[0][0],
-                self.red_agent[0][1],
-                self.blue_agent[0][0],
-                self.blue_agent[0][1],
-                self.black_agent[0][0],
-                self.black_agent[0][1],
+        return (self.red_agent[0][0][0],
+                self.red_agent[0][0][1],
+                self.blue_agent[0][0][0],
+                self.blue_agent[0][0][1],
+                self.black_agent[0][0][0],
+                self.black_agent[0][0][1],
                 self.red_carry,
                 self.blue_carry,
                 self.black_carry,
