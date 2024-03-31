@@ -42,6 +42,8 @@ class PdWorld:
         for row, col in self.blue_agent[0]:
             self.grid[row][col] = 'B'
         for row, col in self.red_agent[0]:
+            
+            print(self.red_agent[0])
             self.grid[row][col] = 'R'
     
     def _init_block_capacities(self):
@@ -69,7 +71,7 @@ class PdWorld:
 
     def is_action_applicable(self, action, agent):
     
-        grid_max_x, grid_max_y = self.rows, self.cols 
+        grid_max_x, grid_max_y = self.rows - 1, self.cols - 1 
 
         position, carrying_block = self.get_agent_position_and_block_status(agent)
 
@@ -83,13 +85,13 @@ class PdWorld:
             return False
 
         # Check if moving off the grid
-        if action == my_enums.Actions.UP and potential_position[1] < 0:
+        if action == my_enums.Actions.UP and potential_position[0] < 0:
             return False
-        if action == my_enums.Actions.DOWN and potential_position[1] > grid_max_y:
+        if action == my_enums.Actions.DOWN and potential_position[0] > grid_max_y:
             return False
-        if action == my_enums.Actions.LEFT and potential_position[0] < 0:
+        if action == my_enums.Actions.LEFT and potential_position[1] < 0:
             return False
-        if action == my_enums.Actions.RIGHT and potential_position[0] > grid_max_x:
+        if action == my_enums.Actions.RIGHT and potential_position[1] > grid_max_x:
             return False
 
         # Check if trying to pick up or drop off without being in the correct location
@@ -113,8 +115,6 @@ class PdWorld:
 
         new_position = self.transition(position, action)
         
-        x, y = position[0]
-
         if agent == my_enums.Agent.RED:
             self.red_agent = [new_position], my_enums.Agent.RED
             
@@ -124,16 +124,16 @@ class PdWorld:
             self.black_agent = [new_position], my_enums.Agent.BLACK
             
     def transition(self, position, action):
-        x, y = position[0]
+        y, x = position[0]
 
         if action == my_enums.Actions.UP:
-            new_position = (x-1, y)
+            new_position = (y-1, x)
         elif action == my_enums.Actions.DOWN:
-            new_position =  (x+1, y)
+            new_position =  (y+1, x)
         elif action == my_enums.Actions.LEFT:
-            new_position =  (x, y-1)
+            new_position =  (y, x-1)
         else: #action == my_enums.Actions.RIGHT
-            new_position =  (x, y+1)
+            new_position =  (y, x+1)
 
         return new_position
             
@@ -171,11 +171,11 @@ class PdWorld:
                 carry_status = 1
                 self.pickup_dictionary[position[0]] -= 1
             
-            elif action == my_enums.Actions.PICKUP:
+            elif action == my_enums.Actions.DROPOFF:
                 carry_status  = 0
                 self.dropoff_dictionary[position[0]] += 1
             
-            self.update_carry(action, agent, carry_status)
+            self.update_carry(agent, carry_status)
         
                     
         return reward, terminal_state_reached, self.get_updated_state()

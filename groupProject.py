@@ -72,7 +72,14 @@ def update_q_value(q_table,
 # Running experiments with different configurations
 
 # Visualization and analysis of results
-        
+
+def get_next_agent(agent):
+    if(agent == my_enums.Agent.RED):
+        return my_enums.Agent.BLUE
+    elif(agent == my_enums.Agent.BLUE):
+        return my_enums.Agent.BLACK
+    else:
+        return my_enums.Agent.RED
 
 BLOCK_CAPACITY = 5
 
@@ -98,7 +105,7 @@ initial_steps = 500
 second_phase_steps = 8500
 
 
-world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (black_agent, my_enums.Agent.BLACK), (blue_agent, my_enums.Agent.BLUE), (red_agent, my_enums.Agent.RED), MOVEMENT_PENALTY, BLOCK_REWARD)
+world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (red_agent, my_enums.Agent.RED), (blue_agent, my_enums.Agent.BLUE), (black_agent, my_enums.Agent.BLACK), MOVEMENT_PENALTY, BLOCK_REWARD)
 world.display()
 
 #red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
@@ -136,11 +143,11 @@ for episode in range(num_episodes):
         state = next_state
         
         count += 1
-
+        agent = get_next_agent(agent)
         print("count: {}".format(count))
         print()
         world.display()
-        if count >= 10:
+        if count >= 20:
             done = True
 
 print(q_table)
