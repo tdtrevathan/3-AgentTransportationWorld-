@@ -97,12 +97,12 @@ blue_agent = [(2,2)]
 black_agent =[(0,2)]
 red_agent = [(4,2)]
 
-total_steps = 9000
-alpha = 0.3
-gamma = 0.5
+# total_steps = 9000
+# alpha = 0.3
+# gamma = 0.5
 
-initial_steps = 500
-second_phase_steps = 8500
+# initial_steps = 500
+# second_phase_steps = 8500
 
 
 world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (red_agent, my_enums.Agent.RED), (blue_agent, my_enums.Agent.BLUE), (black_agent, my_enums.Agent.BLACK), MOVEMENT_PENALTY, BLOCK_REWARD)
@@ -119,16 +119,91 @@ if ([(0,1)] == [(2,1)]):
     print('contents dont matter')
 
 
+def select_prandom_action(state, applicable_actions, q_table):
+    # Prioritize 'PICKUP' and 'DROPOFF' if applicable
+    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
+        if action in applicable_actions:
+            return action
+
+    # If 'PICKUP' and 'DROPOFF' are not applicable, select randomly among the rest
+    return np.random.choice(applicable_actions)
+
+def select_pgreedy_action(state, applicable_actions, q_table):
+    # If 'pickup' or 'dropoff' is applicable, prioritize it
+    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
+        if action in applicable_actions:
+            return action
+
+    # Filter Q-values for applicable actions only and find the max Q-value
+    q_values = {action: q_table.get((state, action), 0) for action in applicable_actions}
+    max_q = max(q_values.values())
+
+    # Get actions with the max Q-value
+    max_actions = [action for action, q in q_values.items() if q == max_q]
+
+    # Randomly select among the actions with the highest Q-value
+    return np.random.choice(max_actions)
+
+def select_pexploit_action(state, applicable_actions, q_table):
+    # Check for priority actions first
+    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
+        if action in applicable_actions:
+            return action
+
+    # Decide to exploit or explore based on probability
+    if np.random.rand() < 0.8:  # 80% chance to exploit
+        # Exploit: Choose the action with the highest Q-value
+        q_values = {action: q_table.get((state, action), 0) for action in applicable_actions}
+        max_q = max(q_values.values())
+        max_actions = [action for action, q in q_values.items() if q == max_q]
+        return np.random.choice(max_actions)
+    else:
+        # Explore: Choose a random action
+        return np.random.choice(applicable_actions)
+    
+
+total_steps = 9000
+alpha = 0.3
+gamma = 0.5
+
+initial_steps = 500
+second_phase_steps = 8500
+
+
 for episode in range(num_episodes):
     #state = env.reset()  # Assuming an environment 'env' that can reset to start state
-    
+
+    num_episodes = 9000  # Total number of episodes in your experiment
+
     num_actions = len(my_enums.Actions)
     
     done = False
     count = 0
     while not done:
         # Step 2: Select action randomly
-        action = np.random.choice([a for a in my_enums.Actions if world.is_action_applicable(a, agent)])
+        applicable_actions = [a for a in my_enums.Actions if world.is_action_applicable(a, agent)]
+
+        # Decide which policy to use
+        if episode < initial_steps:
+            policy = "PRANDOM"
+        else:
+            scenario = 'c'  # Change as needed for each experiment run
+
+            if scenario == 'a':
+                policy = "PRANDOM"
+            elif scenario == 'b':
+                policy = "PGREEDY"
+            elif scenario == 'c':
+                policy = "PEXPLOIT"
+
+        # Select an action based on the current policy
+        if policy == "PRANDOM":
+            action = select_prandom_action(state, applicable_actions, q_table)
+        elif policy == "PEXPLOIT":
+            action = select_pexploit_action(state, applicable_actions, q_table)
+        elif policy == "PGREEDY":
+            action = select_pgreedy_action(state, applicable_actions, q_table)
+
         print('action')
         print(action)
         # Execute the action, get the new state and reward
