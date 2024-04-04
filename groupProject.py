@@ -58,8 +58,13 @@ def update_q_value(q_table,
     # Q-learning formula
     q_table[state, action] = (1 - alpha) * q_table.get((state, action), 0) + alpha * (reward + gamma * max_next_q)
 
-#def sarsa_update(state, action, reward, next_state, next_action):
-# Implement SARSA update
+def sarsa_update(state, action, reward, next_state, next_action, q_table, alpha, gamma):
+    # Implement SARSA update
+    current_q = q_table.get((state, action), 0)
+    next_q = q_table.get((next_state, next_action), 0)
+    updated_q = current_q + alpha * (reward + gamma * next_q - current_q)
+    q_table[state, action] = updated_q
+
 
 #def select_action(state, policy):
 # Action selection based on the current policy
@@ -203,6 +208,9 @@ for episode in range(num_episodes):
             action = select_pexploit_action(state, applicable_actions, q_table)
         elif policy == "PGREEDY":
             action = select_pgreedy_action(state, applicable_actions, q_table)
+
+        # Update Q-value using SARSA update equation
+        # sarsa_update(q_table, state, action, reward, next_state, next_action, alpha, gamma) # need to implement next_action
 
         print('action')
         print(action)
