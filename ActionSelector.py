@@ -7,16 +7,16 @@ class ActionSelector:
     def determine_action(self, episode, state, applicable_actions, q_table, initial_steps, second_policy):
                 # Decide which policy to use
         if episode < initial_steps:
-            policy = my_enums.Pstrategy.PRANDOM
+            policy = my_enums.ExplorationMethod.PRANDOM
         else:
             policy = second_policy
 
         # Select an action based on the current policy
-        if policy == my_enums.Pstrategy.PRANDOM:
+        if policy == my_enums.ExplorationMethod.PRANDOM:
             action = self.select_prandom_action(applicable_actions)
-        elif policy == my_enums.Pstrategy.PEXPLOIT:
+        elif policy == my_enums.ExplorationMethod.PEXPLOIT:
             action = self.select_pexploit_action(state, applicable_actions, q_table)
-        elif policy == my_enums.Pstrategy.PGREEDY:
+        elif policy == my_enums.ExplorationMethod.PGREEDY:
             action = self.select_pgreedy_action(state, applicable_actions, q_table)
 
         return action

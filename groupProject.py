@@ -20,6 +20,8 @@ black_agent =[(0,2)]
 red_agent = [(4,2)]
 
 
+#EXPERIMENT 1
+
 world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (red_agent, my_enums.Agent.RED), (blue_agent, my_enums.Agent.BLUE), (black_agent, my_enums.Agent.BLACK), MOVEMENT_PENALTY, BLOCK_REWARD)
 
 #red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
@@ -40,20 +42,50 @@ learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
 #but this doesnt mean that the experiment is over
 num_episodes =  3
 
+#runs refers to how many time the entire experiment should be run
+runs = 2
+
 second_exploration_method_per_episode = [my_enums.ExplorationMethod.PRANDOM,
-                                         my_enums.ExplorationMethod.PGREED,
+                                         my_enums.ExplorationMethod.PGREEDY,
                                          my_enums.ExplorationMethod.PEXPLOIT]
 
 num_episodes = len(second_exploration_method_per_episode)
 
-experiment = Experiment(world,
+experiment_1 = Experiment(world,
                         total_steps,
                         initial_steps,
                         second_phase_steps,
                         num_episodes,
                         initial_state,
                         learningAlgorithm,
-                        second_exploration_method_per_episode)
+                        second_exploration_method_per_episode,
+                        runs)
 
-experiment.run_experiment()
+
+
+experiment_1.run_experiment()
+
+#EXPERIMENT 2
+
+num_episodes = 1
+second_exploration_method_per_episode = [my_enums.ExplorationMethod.PEXPLOIT]
+algorithm = my_enums.Algorithm.SARSA
+learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
+
+num_episodes = len(second_exploration_method_per_episode)
+
+experiment_2 = Experiment(world,
+                        total_steps,
+                        initial_steps,
+                        second_phase_steps,
+                        num_episodes,
+                        initial_state,
+                        learningAlgorithm,
+                        second_exploration_method_per_episode,
+                        runs)
+
+experiment_2.run_experiment()
+
+
+#EXPERIMENT 3
 

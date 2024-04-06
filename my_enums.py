@@ -11,7 +11,7 @@ class Actions(Enum):
 class ExplorationMethod(Enum):
     PRANDOM = 1
     PEXPLOIT = 2
-    PGREED = 3
+    PGREEDY = 3
     
 class Agent(Enum):
     RED = 1
@@ -22,7 +22,3 @@ class Algorithm(Enum):
     QLEARNING = 1
     SARSA = 2
     
-class Pstrategy(Enum):
-    PRANDOM = 1
-    PEXPLOIT = 2
-    PGREEDY = 3
