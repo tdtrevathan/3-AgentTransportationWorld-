@@ -27,6 +27,43 @@ class PdWorld:
         self._init_locations()
         self._init_block_capacities()
         self._init_carry()
+        
+        self._init_initial_values(rows, 
+                 cols, 
+                 block_capacity, 
+                 pickup_locations, 
+                 dropoff_locations, 
+                 red_agent, 
+                 blue_agent, 
+                 black_agent, 
+                 movement_penalty, 
+                 block_reward)
+     
+     
+     
+        
+    def _init_initial_values(self, 
+                 rows, 
+                 cols, 
+                 block_capacity, 
+                 pickup_locations, 
+                 dropoff_locations, 
+                 red_agent, 
+                 blue_agent, 
+                 black_agent, 
+                 movement_penalty, 
+                 block_reward):
+        
+        self.init_rows = rows 
+        self.init_cols = cols
+        self.init_block_capacity = block_capacity
+        self.init_pickup_locations = pickup_locations
+        self.init_dropoff_locations = dropoff_locations
+        self.init_red_agent = red_agent
+        self.init_blue_agent = blue_agent
+        self.init_black_agent = black_agent
+        self.init_movement_penalty = movement_penalty
+        self.init_block_reward = block_reward
 
     def _init_locations(self):
 
@@ -42,8 +79,6 @@ class PdWorld:
         for row, col in self.blue_agent[0]:
             self.grid[row][col] = 'B'
         for row, col in self.red_agent[0]:
-            
-            print(self.red_agent[0])
             self.grid[row][col] = 'R'
     
     def _init_block_capacities(self):
@@ -205,6 +240,15 @@ class PdWorld:
                 self.dropoff_dictionary[self.dropoff_locations[2]]
             )
 
-            
-
-    
+    def reset_initial_values(self):
+        self.rows = self.init_rows 
+        self.cols = self.init_cols
+        self.block_capacity = self.init_block_capacity
+        self.pickup_locations = self.init_pickup_locations
+        self.dropoff_locations = self.init_dropoff_locations
+        self.red_agent = self.init_red_agent
+        self.blue_agent = self.init_blue_agent
+        self.black_agent = self.init_black_agent
+        self.movement_penalty = self.init_movement_penalty
+        self.block_reward = self.init_block_reward
+        

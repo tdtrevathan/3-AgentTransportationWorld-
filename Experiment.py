@@ -101,9 +101,10 @@ class Experiment:
             while not done:
                 # Get available actions
                 applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
-
+                
+                #If terminal state reached
                 if(len(applicable_actions) == 0):
-                    done = True
+                    self.world.reset_initial_values()
                     break
 
                 # Decide which policy to use
@@ -130,8 +131,7 @@ class Experiment:
                 # Update Q-value using SARSA update equation
                 # sarsa_update(q_table, state, action, reward, next_state, next_action, alpha, gamma) # need to implement next_action
 
-                print('action')
-                print(action)
+
                 # Execute the action, get the new state and reward
                 reward, done, *next_state = self.world.performAction(action, agent)
 
@@ -144,18 +144,20 @@ class Experiment:
                 agent = self.get_next_agent(agent)
                 
                 if(self.world.dropoffs_are_full()):
-                    done = True
+                    self.world.reset_initial_values()
                     
                 count += 1
 
-                print("count: {}".format(count))
-                print()
                 #self.world.display()
                 if count >= self.total_steps:
                     done = True
 
         #filtered_dict = {k: v for k, v in q_table.items() if v not in (-np.inf,-0.3) }
 
-        print(q_table)
+        #print(q_table)
         #print(filtered_dict)
-        #print(count)
+        print(count)
+        
+        if(count < 9000):
+            print(q_table)
+            self.world.display()
