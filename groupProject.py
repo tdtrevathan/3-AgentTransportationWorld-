@@ -1,90 +1,7 @@
-import numpy as np
 import my_enums
 from PdWorld import PdWorld
+from Experiment import Experiment
 
-def generate_surrounding_statuses(agent_position, grid):
-    """
-    Generates the statuses of the cells surrounding the agent in the grid.
-
-    Parameters:
-    - agent_position: A tuple (x, y) representing the agent's current position.
-    - grid: A 2D list representing the grid environment where each cell has a type defined by CellType enum.
-
-    Returns:
-    - A dictionary with the status of the cells around the agent in each direction (up, right, down, left).
-    """
-    x, y = agent_position
-    surroundings = {
-        'up': None,
-        'right': None,
-        'down': None,
-        'left': None
-    }
-
-    if x > 0:
-        surroundings['up'] = grid[x - 1][y]
-    if y < len(grid[0]) - 1:
-        surroundings['right'] = grid[x][y + 1]
-    if x < len(grid) - 1:
-        surroundings['down'] = grid[x + 1][y]
-    if y > 0:
-        surroundings['left'] = grid[x][y - 1]
-
-   # # Convert grid values to CellType enum
-   # for direction in surroundings:
-   #     cell_value = surroundings[direction]
-   #     surroundings[direction] = CellType(cell_value) if cell_value is not None else None
-
-    return surroundings
-
-
-def update_q_value(q_table, 
-                   state,
-                   action,
-                   reward,
-                   next_state,
-                   alpha,
-                   gamma,
-                   actions,
-                   agent,
-                   world):
-
-    # Get the Q-values for the next state, filter for applicable actions only
-    next_q_values = np.array([q_table.get((next_state, a), 0) if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
-    
-    # Compute the maximum Q-value for the next state from applicable actions
-    max_next_q = np.max(next_q_values)
-    
-    # Q-learning formula
-    q_table[state, action] = (1 - alpha) * q_table.get((state, action), 0) + alpha * (reward + gamma * max_next_q)
-
-def sarsa_update(state, action, reward, next_state, next_action, q_table, alpha, gamma):
-    # Implement SARSA update
-    current_q = q_table.get((state, action), 0)
-    next_q = q_table.get((next_state, next_action), 0)
-    updated_q = current_q + alpha * (reward + gamma * next_q - current_q)
-    q_table[state, action] = updated_q
-
-
-#def select_action(state, policy):
-# Action selection based on the current policy
-
-#def run_experiment(environment, agents, num_steps, policy):
-# Main loop for running experiments
-
-# Initialization of environment and agents
-
-# Running experiments with different configurations
-
-# Visualization and analysis of results
-
-def get_next_agent(agent):
-    if(agent == my_enums.Agent.RED):
-        return my_enums.Agent.BLUE
-    elif(agent == my_enums.Agent.BLUE):
-        return my_enums.Agent.BLACK
-    else:
-        return my_enums.Agent.RED
 
 BLOCK_CAPACITY = 5
 
@@ -102,71 +19,12 @@ blue_agent = [(2,2)]
 black_agent =[(0,2)]
 red_agent = [(4,2)]
 
-# total_steps = 9000
-# alpha = 0.3
-# gamma = 0.5
-
-# initial_steps = 500
-# second_phase_steps = 8500
-
 
 world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_locations, (red_agent, my_enums.Agent.RED), (blue_agent, my_enums.Agent.BLUE), (black_agent, my_enums.Agent.BLACK), MOVEMENT_PENALTY, BLOCK_REWARD)
-world.display()
 
 #red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
-redInitialState = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5, 0, 0, 0)
-
-num_episodes =  1
-agent = my_enums.Agent.RED
-state = redInitialState
-
-if ([(0,1)] == [(2,1)]):
-    print('contents dont matter')
-
-
-def select_prandom_action(state, applicable_actions, q_table):
-    # Prioritize 'PICKUP' and 'DROPOFF' if applicable
-    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
-        if action in applicable_actions:
-            return action
-
-    # If 'PICKUP' and 'DROPOFF' are not applicable, select randomly among the rest
-    return np.random.choice(applicable_actions)
-
-def select_pgreedy_action(state, applicable_actions, q_table):
-    # If 'pickup' or 'dropoff' is applicable, prioritize it
-    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
-        if action in applicable_actions:
-            return action
-
-    # Filter Q-values for applicable actions only and find the max Q-value
-    q_values = {action: q_table.get((state, action), 0) for action in applicable_actions}
-    max_q = max(q_values.values())
-
-    # Get actions with the max Q-value
-    max_actions = [action for action, q in q_values.items() if q == max_q]
-
-    # Randomly select among the actions with the highest Q-value
-    return np.random.choice(max_actions)
-
-def select_pexploit_action(state, applicable_actions, q_table):
-    # Check for priority actions first
-    for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
-        if action in applicable_actions:
-            return action
-
-    # Decide to exploit or explore based on probability
-    if np.random.rand() < 0.8:  # 80% chance to exploit
-        # Exploit: Choose the action with the highest Q-value
-        q_values = {action: q_table.get((state, action), 0) for action in applicable_actions}
-        max_q = max(q_values.values())
-        max_actions = [action for action, q in q_values.items() if q == max_q]
-        return np.random.choice(max_actions)
-    else:
-        # Explore: Choose a random action
-        return np.random.choice(applicable_actions)
+initial_state = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5, 0, 0, 0)
     
-
 total_steps = 9000
 alpha = 0.3
 gamma = 0.5
@@ -174,63 +32,19 @@ gamma = 0.5
 initial_steps = 500
 second_phase_steps = 8500
 
+#episodes refer to runs essentially.
+#the run could end due to all blocks being returned for example
+#but this doesnt mean that the experiment is over
+num_episodes =  1
 
-for episode in range(num_episodes):
-    #state = env.reset()  # Assuming an environment 'env' that can reset to start state
+experiment = Experiment(world,
+                        total_steps,
+                        alpha,
+                        gamma,
+                        initial_steps,
+                        second_phase_steps,
+                        num_episodes,
+                        initial_state)
 
-    num_episodes = 9000  # Total number of episodes in your experiment
+experiment.run_experiment()
 
-    num_actions = len(my_enums.Actions)
-    
-    done = False
-    count = 0
-    while not done:
-        # Step 2: Select action randomly
-        applicable_actions = [a for a in my_enums.Actions if world.is_action_applicable(a, agent)]
-
-        # Decide which policy to use
-        if episode < initial_steps:
-            policy = "PRANDOM"
-        else:
-            scenario = 'c'  # Change as needed for each experiment run
-
-            if scenario == 'a':
-                policy = "PRANDOM"
-            elif scenario == 'b':
-                policy = "PGREEDY"
-            elif scenario == 'c':
-                policy = "PEXPLOIT"
-
-        # Select an action based on the current policy
-        if policy == "PRANDOM":
-            action = select_prandom_action(state, applicable_actions, q_table)
-        elif policy == "PEXPLOIT":
-            action = select_pexploit_action(state, applicable_actions, q_table)
-        elif policy == "PGREEDY":
-            action = select_pgreedy_action(state, applicable_actions, q_table)
-
-        # Update Q-value using SARSA update equation
-        # sarsa_update(q_table, state, action, reward, next_state, next_action, alpha, gamma) # need to implement next_action
-
-        print('action')
-        print(action)
-        # Execute the action, get the new state and reward
-        reward, done, *next_state = world.performAction(action, agent)
-
-        next_state = tuple(next_state[0])
-
-        # Step 3: Update the Q-table  actions, pickups, dropoffs
-        update_q_value(q_table, state, action, reward, next_state, alpha, gamma, num_actions, agent, world)
-        
-        # Prepare for the next iteration
-        state = next_state
-        
-        count += 1
-        agent = get_next_agent(agent)
-        print("count: {}".format(count))
-        print()
-        world.display()
-        if count >= 20:
-            done = True
-
-print(q_table)
