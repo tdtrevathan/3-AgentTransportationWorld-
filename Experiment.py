@@ -5,51 +5,21 @@ class Experiment:
     def __init__(self,
                 world,
                 total_steps,
-                alpha,
-                gamma,
                 initial_steps,
                 second_phase_steps,
                 num_episodes,
-                initial_state):
+                initial_state,
+                algorithm):
         
         self.world = world
         self.total_steps = total_steps
-        self.alpha = alpha
-        self.gamma = gamma
         self.initial_steps = initial_steps
         self.second_phase_steps = second_phase_steps
         self.num_episodes = num_episodes
         self.initial_state = initial_state
+        self.algorithm = algorithm
         
         
-    def update_q_value(self,
-                       q_table, 
-                       state,
-                       action,
-                       reward,
-                       next_state,
-                       alpha,
-                       gamma,
-                       actions,
-                       agent,
-                       world):
-
-        # Get the Q-values for the next state, filter for applicable actions only
-        next_q_values = np.array([q_table.get((next_state, a), 0) if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
-
-        # Compute the maximum Q-value for the next state from applicable actions
-        max_next_q = np.max(next_q_values)
-
-        # Q-learning formula
-        q_table[state, action] = (1 - alpha) * q_table.get((state, action), 0) + alpha * (reward + gamma * max_next_q)
-
-    def sarsa_update(self, state, action, reward, next_state, next_action, q_table, alpha, gamma):
-        # Implement SARSA update
-        current_q = q_table.get((state, action), 0)
-        next_q = q_table.get((next_state, next_action), 0)
-        updated_q = current_q + alpha * (reward + gamma * next_q - current_q)
-        q_table[state, action] = updated_q
-
     def select_prandom_action(self, applicable_actions):
         # Prioritize 'PICKUP' and 'DROPOFF' if applicable
         for action in [my_enums.Actions.PICKUP, my_enums.Actions.DROPOFF]:
@@ -127,6 +97,7 @@ class Experiment:
 
             done = False
             count = 0
+            previous_action = None
             while not done:
                 # Get available actions
                 applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
@@ -143,7 +114,7 @@ class Experiment:
                         policy = "PGREEDY"
                     elif scenario == 'c':
                         policy = "PEXPLOIT"
-
+                
                 # Select an action based on the current policy
                 if policy == "PRANDOM":
                     action = self.select_prandom_action(applicable_actions)
@@ -162,12 +133,13 @@ class Experiment:
 
                 next_state = tuple(next_state[0])
 
-                # Step 3: Update the Q-table  actions, pickups, dropoffs
-                self.update_q_value(q_table, state, action, reward, next_state, self.alpha, self.gamma, num_actions, agent, self.world)
-
+                q_table[state, action] = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world, previous_action)
+                
                 # Prepare for the next iteration
                 state = next_state
 
+                previous_action = action
+                
                 count += 1
                 agent = self.get_next_agent(agent)
                 print("count: {}".format(count))

@@ -18,3 +18,6 @@ class Agent(Enum):
     BLUE = 2
     BLACK = 3
     
+class Algorithm(Enum):
+    QLEARNING = 1
+    SARSA = 2

@@ -1,7 +1,7 @@
 import my_enums
 from PdWorld import PdWorld
 from Experiment import Experiment
-
+from LearningAlgorithm import LearningAlgorithm
 
 BLOCK_CAPACITY = 5
 
@@ -32,19 +32,23 @@ gamma = 0.5
 initial_steps = 500
 second_phase_steps = 8500
 
+algorithm = my_enums.Algorithm.QLEARNING
+learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
+
 #episodes refer to runs essentially.
 #the run could end due to all blocks being returned for example
 #but this doesnt mean that the experiment is over
 num_episodes =  1
 
+
+
 experiment = Experiment(world,
                         total_steps,
-                        alpha,
-                        gamma,
                         initial_steps,
                         second_phase_steps,
                         num_episodes,
-                        initial_state)
+                        initial_state,
+                        learningAlgorithm)
 
 experiment.run_experiment()
 
