@@ -1,4 +1,3 @@
-import numpy as np
 import my_enums
 from ActionSelector import ActionSelector
 
@@ -10,7 +9,8 @@ class Experiment:
                 second_phase_steps,
                 num_episodes,
                 initial_state,
-                algorithm):
+                algorithm,
+                second_phase_methods):
         
         self.world = world
         self.total_steps = total_steps
@@ -20,6 +20,7 @@ class Experiment:
         self.initial_state = initial_state
         self.algorithm = algorithm
         self.action_selector = ActionSelector()
+        self.second_phase_methods = second_phase_methods
         
 
     def get_next_agent(self, agent):
@@ -42,24 +43,17 @@ class Experiment:
         agent = my_enums.Agent.RED
         state = self.initial_state
 
+        episode_counter = 0
+        
+        for episode in range(self.num_episodes):
 
-        #episodes refer to runs essentially.
-        #the run could end due to all blocks being returned for example
-        #but this doesnt mean that the experiment is over
-        num_episodes =  1
-
-        second_phase_policy = my_enums.ExplorationMethod.PRANDOM
-
-        for episode in range(num_episodes):
-
-
+            second_phase_policy = self.second_phase_methods[episode_counter]
+            
             num_actions = len(my_enums.Actions)
 
             done = False
             count = 0
-            
-
-            
+                        
             while not done:
                 # Get available actions
                 applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
@@ -90,13 +84,15 @@ class Experiment:
                 #self.world.display()
                 if count >= self.total_steps:
                     done = True
+            
+            episode_counter += 1
 
-        #filtered_dict = {k: v for k, v in q_table.items() if v not in (-np.inf,-0.3) }
-
-        #print(q_table)
-        #print(filtered_dict)
-        print(count)
-        
-        if(count < 9000):
-            print(q_table)
-            self.world.display()
+            #filtered_dict = {k: v for k, v in q_table.items() if v not in (-np.inf,-0.3) }
+    
+            #print(q_table)
+            #print(filtered_dict)
+            print(count)
+            
+            if(count < 9000):
+                print(q_table)
+                self.world.display()

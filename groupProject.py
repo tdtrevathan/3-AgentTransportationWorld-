@@ -38,7 +38,13 @@ learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
 #episodes refer to runs essentially.
 #the run could end due to all blocks being returned for example
 #but this doesnt mean that the experiment is over
-num_episodes =  1
+num_episodes =  3
+
+second_exploration_method_per_episode = [my_enums.ExplorationMethod.PRANDOM,
+                                         my_enums.ExplorationMethod.PGREED,
+                                         my_enums.ExplorationMethod.PEXPLOIT]
+
+num_episodes = len(second_exploration_method_per_episode)
 
 experiment = Experiment(world,
                         total_steps,
@@ -46,7 +52,8 @@ experiment = Experiment(world,
                         second_phase_steps,
                         num_episodes,
                         initial_state,
-                        learningAlgorithm)
+                        learningAlgorithm,
+                        second_exploration_method_per_episode)
 
 experiment.run_experiment()
 
