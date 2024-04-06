@@ -40,8 +40,6 @@ learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
 #but this doesnt mean that the experiment is over
 num_episodes =  1
 
-
-
 experiment = Experiment(world,
                         total_steps,
                         initial_steps,

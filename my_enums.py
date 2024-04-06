@@ -21,3 +21,8 @@ class Agent(Enum):
 class Algorithm(Enum):
     QLEARNING = 1
     SARSA = 2
+    
+class Pstrategy(Enum):
+    PRANDOM = 1
+    PEXPLOIT = 2
+    PGREEDY = 3

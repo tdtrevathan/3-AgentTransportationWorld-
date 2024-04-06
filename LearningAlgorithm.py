@@ -15,25 +15,22 @@ class LearningAlgorithm:
                 next_state,
                 actions,
                 agent,
-                world,
-                previous_action):
+                world):
         
         # Get the Q-values for the next state, filter for applicable actions only
         next_q_value = np.array([q_table.get((next_state, a), 0) if world.is_action_applicable(a, agent) else -np.inf for a in range(actions)])
         
-        return self.apply_algorithm(q_table, state, action, reward, next_q_value, previous_action)
+        return self.apply_algorithm(q_table, state, action, reward, next_q_value)
 
 
 
-    def apply_algorithm(self, q_table, state, action, reward, next_q_value, previous_action):
+    def apply_algorithm(self, q_table, state, action, reward, next_q_value):
         
         if(self.algorithm == my_enums.Algorithm.QLEARNING):
 
             return self.q_formula(q_table, state, action, reward, next_q_value)
         else:
-            current_q = q_table.get((state, action), 0)
-            
-            return self.sarsa_formula(q_table, state, action, reward, next_q_value, previous_action)
+            return self.sarsa_formula(q_table, state, action, reward, next_q_value)
 
 
 
@@ -44,7 +41,7 @@ class LearningAlgorithm:
         
         return (1 - self.alpha) * q_table.get((state, action), 0) + self.alpha * (reward + self.gamma * max_next_q)
     
-    def sarsa_formula(self, q_table, state, action, reward, next_q, previous_action):
+    def sarsa_formula(self, q_table, state, action, reward, next_q):
         
-        current_q = q_table.get((state, action), previous_action)
+        current_q = q_table.get((state, action), 0)
         return current_q + self.alpha * (reward + self.gamma * next_q - current_q)

@@ -97,30 +97,34 @@ class Experiment:
 
             done = False
             count = 0
-            previous_action = None
+            
             while not done:
                 # Get available actions
                 applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
 
+                if(len(applicable_actions) == 0):
+                    done = True
+                    break
+
                 # Decide which policy to use
                 if episode < self.initial_steps:
-                    policy = "PRANDOM"
+                    policy = my_enums.Pstrategy.PRANDOM
                 else:
                     scenario = 'c'  # Change as needed for each experiment run
 
                     if scenario == 'a':
-                        policy = "PRANDOM"
+                        policy = my_enums.Pstrategy.PRANDOM
                     elif scenario == 'b':
-                        policy = "PGREEDY"
+                        policy = my_enums.Pstrategy.PGREEDY
                     elif scenario == 'c':
-                        policy = "PEXPLOIT"
+                        policy = my_enums.Pstrategy.PEXPLOIT
                 
                 # Select an action based on the current policy
-                if policy == "PRANDOM":
+                if policy == my_enums.Pstrategy.PRANDOM:
                     action = self.select_prandom_action(applicable_actions)
-                elif policy == "PEXPLOIT":
+                elif policy == my_enums.Pstrategy.PEXPLOIT:
                     action = self.select_pexploit_action(state, applicable_actions, q_table)
-                elif policy == "PGREEDY":
+                elif policy == my_enums.Pstrategy.PGREEDY:
                     action = self.select_pgreedy_action(state, applicable_actions, q_table)
 
                 # Update Q-value using SARSA update equation
@@ -133,19 +137,25 @@ class Experiment:
 
                 next_state = tuple(next_state[0])
 
-                q_table[state, action] = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world, previous_action)
+                q_table[state, action] = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world)
                 
                 # Prepare for the next iteration
                 state = next_state
-
-                previous_action = action
-                
-                count += 1
                 agent = self.get_next_agent(agent)
+                
+                if(self.world.dropoffs_are_full()):
+                    done = True
+                    
+                count += 1
+
                 print("count: {}".format(count))
                 print()
-                self.world.display()
-                if count >= 20:
+                #self.world.display()
+                if count >= self.total_steps:
                     done = True
 
+        #filtered_dict = {k: v for k, v in q_table.items() if v not in (-np.inf,-0.3) }
+
         print(q_table)
+        #print(filtered_dict)
+        #print(count)

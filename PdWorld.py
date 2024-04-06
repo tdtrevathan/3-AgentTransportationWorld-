@@ -180,8 +180,14 @@ class PdWorld:
                     
         return reward, terminal_state_reached, self.get_updated_state()
     
-    def get_updated_state(self):
+    def dropoffs_are_full(self):
+        droppoff_full_1 = self.dropoff_dictionary[self.dropoff_locations[0]] == self.block_capacity
+        droppoff_full_2 = self.dropoff_dictionary[self.dropoff_locations[1]] == self.block_capacity
+        droppoff_full_3 = self.dropoff_dictionary[self.dropoff_locations[2]] == self.block_capacity
 
+        return droppoff_full_1 and droppoff_full_2 and droppoff_full_3
+    
+    def get_updated_state(self):
         return (self.red_agent[0][0][0],
                 self.red_agent[0][0][1],
                 self.blue_agent[0][0][0],
