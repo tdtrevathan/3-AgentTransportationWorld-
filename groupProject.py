@@ -89,3 +89,36 @@ experiment_2.run_experiment()
 
 #EXPERIMENT 3
 
+#First new alpha value
+
+alpha = 0.15
+learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
+
+experiment_3_a = Experiment(world,
+                        total_steps,
+                        initial_steps,
+                        second_phase_steps,
+                        num_episodes,
+                        initial_state,
+                        learningAlgorithm,
+                        second_exploration_method_per_episode,
+                        runs)
+
+experiment_3_a.run_experiment()
+
+#second new alpha value
+alpha = 0.45
+learningAlgorithm = LearningAlgorithm(algorithm, alpha, gamma)
+
+experiment_3_b = Experiment(world,
+                        total_steps,
+                        initial_steps,
+                        second_phase_steps,
+                        num_episodes,
+                        initial_state,
+                        learningAlgorithm,
+                        second_exploration_method_per_episode,
+                        runs)
+
+experiment_3_b.run_experiment()
+
