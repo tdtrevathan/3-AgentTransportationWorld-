@@ -52,9 +52,9 @@ class Experiment:
         for run in range(self.runs):
             episode_counter = 0
             
-
             for episode in range(self.num_episodes):
                 
+                completions = 0    
                 second_phase_policy = self.second_phase_methods[episode_counter]
 
                 num_actions = len(my_enums.Actions)
@@ -71,7 +71,10 @@ class Experiment:
 
                     #If terminal state reached
                     if((len(applicable_actions) == 0) or self.world.dropoffs_are_full()):
-
+                        
+                        if(self.world.dropoffs_are_full()):
+                            completions += 1
+                            
                         self.world.reset_initial_values()
                         state = self.initial_state
                         
@@ -96,7 +99,18 @@ class Experiment:
                     next_state = tuple(next_state[0])
 
                     q_table[state, action] = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world)
-
+                    
+                    if(agent == my_enums.Agent.BLACK and action == my_enums.Actions.PICKUP or action == my_enums.Actions.DROPOFF):
+                        print('action')
+                        print(action)
+                        print('reward')
+                        print(reward)
+                    #if(action == my_enums.Actions.PICKUP or action == my_enums.Actions.DROPOFF):
+                    #    print(agent)
+                    #    print(action)
+                    #    self.world.display()
+                    #    print()
+                    
                     # Prepare for the next iteration
                     state = next_state
                     agent = self.get_next_agent(agent)
@@ -111,8 +125,12 @@ class Experiment:
 
                 episode_counter += 1
 
-                if(steps < 9000 and not self.track_terminals):
+                if(steps < self.total_steps and not self.track_terminals):
                     #print(q_table)
                     self.world.display()
             
+                print('completions')
+                print(completions)
             
+        self.world.display()    
+        return q_table        
