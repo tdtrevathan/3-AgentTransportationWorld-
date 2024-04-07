@@ -122,3 +122,24 @@ experiment_3_b = Experiment(world,
 
 experiment_3_b.run_experiment()
 
+
+#EXPERIMENT 4
+
+alpha = 0.3
+gamma = 0.5
+track_terminals = True
+new_pickup_locations = [(4, 2), (3, 3), (2, 4)]
+
+experiment_4 = Experiment(world,
+                        total_steps,
+                        initial_steps,
+                        second_phase_steps,
+                        num_episodes,
+                        initial_state,
+                        learningAlgorithm,
+                        second_exploration_method_per_episode,
+                        runs,
+                        track_terminals,
+                        new_pickup_locations)
+
+experiment_4.run_experiment()

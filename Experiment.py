@@ -12,7 +12,9 @@ class Experiment:
                 initial_state,
                 algorithm,
                 second_phase_methods,
-                runs):
+                runs,
+                track_terminals=False,
+                new_pickups=None):
         
         self.world = world
         self.total_steps = total_steps
@@ -24,6 +26,8 @@ class Experiment:
         self.action_selector = ActionSelector()
         self.second_phase_methods = second_phase_methods
         self.runs = runs
+        self.track_terminals = track_terminals
+        self.new_pickups = new_pickups
         
 
     def get_next_agent(self, agent):
@@ -34,8 +38,7 @@ class Experiment:
         else:
             return my_enums.Agent.RED
 
-    #Todo
-    # Running experiments with different configurations
+
     #Todo
     # Visualization and analysis of results
 
@@ -48,31 +51,44 @@ class Experiment:
 
         for run in range(self.runs):
             episode_counter = 0
-                    
+            
+
             for episode in range(self.num_episodes):
-                
                 
                 second_phase_policy = self.second_phase_methods[episode_counter]
 
                 num_actions = len(my_enums.Actions)
 
                 done = False
-                count = 0
+                steps = 0
 
+                terminal_counter = 0
+                
                 while not done:
-                    if(self.world.dropoffs_are_full()):
-                        self.world.reset_initial_values()
-                        state = self.initial_state
-                        
+                    
                     # Get available actions
                     applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
 
                     #If terminal state reached
-                    if(len(applicable_actions) == 0):
-                        self.world.reset_initial_values()
-                        break
+                    if((len(applicable_actions) == 0) or self.world.dropoffs_are_full()):
 
-                    action = self.action_selector.determine_action(episode, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
+                        self.world.reset_initial_values()
+                        state = self.initial_state
+                        
+                        if(self.track_terminals):
+                            if(steps > self.initial_steps):
+                                terminal_counter += 1
+                            if(terminal_counter == 3):
+                                self.world.shift_pickups(self.new_pickups)
+                            if(terminal_counter == 6):
+                                print('done')
+                                done = True
+                                break
+                
+                        continue
+
+
+                    action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
 
                     # Execute the action, get the new state and reward
                     reward, done, *next_state = self.world.performAction(action, agent)
@@ -85,23 +101,18 @@ class Experiment:
                     state = next_state
                     agent = self.get_next_agent(agent)
 
-                    count += 1
+                    steps += 1
 
-                    #self.world.display()
-                    if count >= self.total_steps:
-                        done = True
+
+                    if steps >= self.total_steps:
+                        if(not self.track_terminals):
+                            print('done')
+                            done = True
 
                 episode_counter += 1
 
-
-                #filtered_dict = {k: v for k, v in q_table.items() if v not in (-np.inf,-0.3) }
-
-                #print(q_table)
-                #print(filtered_dict)
-                print(count)
-
-                if(count < 9000):
-                    print(q_table)
+                if(steps < 9000 and not self.track_terminals):
+                    #print(q_table)
                     self.world.display()
             
             

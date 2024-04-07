@@ -4,9 +4,9 @@ import numpy as np
 class ActionSelector:
     
 
-    def determine_action(self, episode, state, applicable_actions, q_table, initial_steps, second_policy):
+    def determine_action(self, steps, state, applicable_actions, q_table, initial_steps, second_policy):
                 # Decide which policy to use
-        if episode < initial_steps:
+        if steps < initial_steps:
             policy = my_enums.ExplorationMethod.PRANDOM
         else:
             policy = second_policy

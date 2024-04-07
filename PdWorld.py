@@ -251,4 +251,11 @@ class PdWorld:
         self.black_agent = self.init_black_agent
         self.movement_penalty = self.init_movement_penalty
         self.block_reward = self.init_block_reward
+        self._init_block_capacities()
+        self._init_carry()
+        
+    def shift_pickups(self, new_pickups):
+        self.init_pickup_locations = new_pickups
+        self.pickup_locations = new_pickups
+        self._init_block_capacities()
         
