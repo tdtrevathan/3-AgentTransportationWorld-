@@ -51,7 +51,11 @@ class Experiment:
         state = self.initial_state
         
         run_counter = 0
-        completion_steps_per_episode = [[],[]]
+        
+        completion_steps_per_episode = []
+        
+        for run in range(self.runs):
+            completion_steps_per_episode.append([])
         
         for run in range(self.runs):
                         
@@ -59,6 +63,7 @@ class Experiment:
 
             completions = 0    
             second_phase_policy = self.second_phase_methods[episode_counter]
+
             num_actions = len(my_enums.Actions)
             done = False
             
@@ -66,19 +71,52 @@ class Experiment:
             episode_initial_step = 0
             terminal_counter = 0
             
-            while not done:
+            reset = True
 
+            while not done:
+                if(reset):
+                    applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
+                    action = self.action_selector.determine_action(steps, 
+                                                                   state,
+                                                                   applicable_actions,
+                                                                   q_table,
+                                                                   self.initial_steps,
+                                                                   second_phase_policy)
+                    reset = False
+              
                 # Get available actions
-                applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
+                #applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
+                
+                #action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
+                # Execute the action, get the new state and reward
+
+                reward, done, *next_state = self.world.performAction(action, agent)
+                
+                steps += 1
+                
+                next_state = tuple(next_state[0])
+
+                next_agent = self.get_next_agent(agent)
+                
+                applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, next_agent)]
+                
                 #If terminal state reached
                 if((len(applicable_actions) == 0) or self.world.dropoffs_are_full()):
                     
+                    reset = True
+                    
                     if(self.world.dropoffs_are_full()):
                         completions += 1
+
                         episode_total_steps = steps - episode_initial_step
-                        episode_initial_step = steps
                         completion_steps_per_episode[run_counter].append(episode_total_steps)
+                                            
+                        #print(f'Completion: {completions}')
+                        #print(f'Step: {steps}')
+                        #print(f'episode initial: {episode_initial_step}')
+                        #print(f'episode total steps: {episode_total_steps}')
                         
+                        episode_initial_step = steps
                         
                     self.world.reset_initial_values()
                     state = self.initial_state
@@ -92,14 +130,14 @@ class Experiment:
                             print('done')
                             done = True
                             break
-            
                     continue
                 
-                action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
-                # Execute the action, get the new state and reward
-                reward, done, *next_state = self.world.performAction(action, agent)
-                next_state = tuple(next_state[0])
-                q_value = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world)
+                
+                
+                next_action = self.action_selector.determine_action(steps, next_state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
+              
+                #Determine next action on new itteration
+                q_value = self.algorithm.update_q(q_table, state, action, reward, next_state, next_action, next_agent, self.world)
                 
                 q_table[state, action] = q_value
                 
@@ -107,8 +145,9 @@ class Experiment:
                 
                 # Prepare for the next iteration
                 state = next_state
-                agent = self.get_next_agent(agent)
-                steps += 1
+                action = next_action
+                agent = next_agent
+
                 if steps >= self.total_steps:
                     if(not self.track_terminals):
                         print('done')
