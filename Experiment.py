@@ -44,93 +44,109 @@ class Experiment:
 
     def run_experiment(self):
         q_table = {}  # Use a dict for sparse storage
-
+        paths = {agent: [] for agent in my_enums.Agent}
+        
         #starting agent and initial state
         agent = my_enums.Agent.RED
         state = self.initial_state
-
+        
+        run_counter = 0
+        completion_steps_per_episode = [[],[]]
+        
         for run in range(self.runs):
+                        
             episode_counter = 0
+
+            completions = 0    
+            second_phase_policy = self.second_phase_methods[episode_counter]
+            num_actions = len(my_enums.Actions)
+            done = False
             
-            for episode in range(self.num_episodes):
-                
-                completions = 0    
-                second_phase_policy = self.second_phase_methods[episode_counter]
+            steps = 0
+            episode_initial_step = 0
+            terminal_counter = 0
+            
+            while not done:
 
-                num_actions = len(my_enums.Actions)
-
-                done = False
-                steps = 0
-
-                terminal_counter = 0
-                
-                while not done:
+                # Get available actions
+                applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
+                #If terminal state reached
+                if((len(applicable_actions) == 0) or self.world.dropoffs_are_full()):
                     
-                    # Get available actions
-                    applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
-
-                    #If terminal state reached
-                    if((len(applicable_actions) == 0) or self.world.dropoffs_are_full()):
+                    if(self.world.dropoffs_are_full()):
+                        completions += 1
+                        episode_total_steps = steps - episode_initial_step
+                        episode_initial_step = steps
+                        completion_steps_per_episode[run_counter].append(episode_total_steps)
                         
-                        if(self.world.dropoffs_are_full()):
-                            completions += 1
-                            
-                        self.world.reset_initial_values()
-                        state = self.initial_state
                         
-                        if(self.track_terminals):
-                            if(steps > self.initial_steps):
-                                terminal_counter += 1
-                            if(terminal_counter == 3):
-                                self.world.shift_pickups(self.new_pickups)
-                            if(terminal_counter == 6):
-                                print('done')
-                                done = True
-                                break
-                
-                        continue
-
-
-                    action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
-
-                    # Execute the action, get the new state and reward
-                    reward, done, *next_state = self.world.performAction(action, agent)
-
-                    next_state = tuple(next_state[0])
-
-                    q_table[state, action] = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world)
+                    self.world.reset_initial_values()
+                    state = self.initial_state
                     
-                    if(agent == my_enums.Agent.BLACK and action == my_enums.Actions.PICKUP or action == my_enums.Actions.DROPOFF):
-                        print('action')
-                        print(action)
-                        print('reward')
-                        print(reward)
-                    #if(action == my_enums.Actions.PICKUP or action == my_enums.Actions.DROPOFF):
-                    #    print(agent)
-                    #    print(action)
-                    #    self.world.display()
-                    #    print()
-                    
-                    # Prepare for the next iteration
-                    state = next_state
-                    agent = self.get_next_agent(agent)
-
-                    steps += 1
-
-
-                    if steps >= self.total_steps:
-                        if(not self.track_terminals):
+                    if(self.track_terminals):
+                        if(steps > self.initial_steps):
+                            terminal_counter += 1
+                        if(terminal_counter == 3):
+                            self.world.shift_pickups(self.new_pickups)
+                        if(terminal_counter == 6):
                             print('done')
                             done = True
+                            break
+            
+                    continue
+                
+                action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
+                # Execute the action, get the new state and reward
+                reward, done, *next_state = self.world.performAction(action, agent)
+                next_state = tuple(next_state[0])
+                q_value = self.algorithm.update_q(q_table, state, action, reward, next_state, num_actions, agent, self.world)
+                
+                q_table[state, action] = q_value
+                
+                paths[agent].append(self.GetAgentPathState(agent, state, action, next_state, q_value))
+                
+                # Prepare for the next iteration
+                state = next_state
+                agent = self.get_next_agent(agent)
+                steps += 1
+                if steps >= self.total_steps:
+                    if(not self.track_terminals):
+                        print('done')
+                        done = True
 
                 episode_counter += 1
 
-                if(steps < self.total_steps and not self.track_terminals):
-                    #print(q_table)
-                    self.world.display()
+            if(steps < self.total_steps and not self.track_terminals):
+                #print(q_table)
+                self.world.display()
             
-                print('completions')
-                print(completions)
+            run_counter += 1
             
         self.world.display()    
-        return q_table        
+        return q_table, paths, completion_steps_per_episode
+    
+    
+    
+    
+    
+    def GetAgentPathState(self, agent, state, action, next_state, q_value):
+        
+        if(agent == my_enums.Agent.RED):
+            agent_index = 0
+        elif(agent == my_enums.Agent.BLUE):
+            agent_index = 1
+        else:
+            agent_index = 2
+            
+        agent_current_position = state[agent_index * 2:agent_index * 2 + 2]
+        agent_current_carry = state[6 + agent_index]
+        
+        agent_state = (agent_current_position[0], agent_current_position[1], agent_current_carry)
+        
+        agent_next_position = next_state[agent_index * 2:agent_index * 2 + 2]
+        agent_next_carry = next_state[6 + agent_index]
+        
+        agent_next_state = (agent_next_position[0], agent_next_position[1], agent_next_carry)
+        
+        return (agent_state, action, agent_next_state, q_value)
+        

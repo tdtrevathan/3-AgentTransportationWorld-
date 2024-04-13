@@ -137,9 +137,12 @@ class PdWorld:
             if action == my_enums.Actions.PICKUP:
                 # Can only pick up if not carrying a block and at a pickup location with available blocks
                 applicable = not carrying_block and any(loc in self.pickup_locations and self.pickup_dictionary[loc] > 0 for loc in position)
+                
+                    
             elif action == my_enums.Actions.DROPOFF:
                 # Can only drop off if carrying a block and at a dropoff location that is not full
                 applicable = carrying_block and any(loc in self.dropoff_locations and self.dropoff_dictionary[loc] < self.block_capacity for loc in position)
+                    
 
             return applicable
 
@@ -194,7 +197,7 @@ class PdWorld:
         terminal_state_reached = False
         
         position, _ = self.get_agent_position_and_block_status(agent)
-
+        
         if (action != my_enums.Actions.PICKUP and action != my_enums.Actions.DROPOFF):
             reward = self.movement_penalty
             
@@ -209,9 +212,8 @@ class PdWorld:
             elif action == my_enums.Actions.DROPOFF:
                 carry_status  = 0
                 self.dropoff_dictionary[position[0]] += 1
-            
+
             self.update_carry(agent, carry_status)
-        
                     
         return reward, terminal_state_reached, self.get_updated_state()
     

@@ -2,7 +2,7 @@ import my_enums
 from PdWorld import PdWorld
 from Experiment import Experiment
 from LearningAlgorithm import LearningAlgorithm
-from HeatMapGenerator import HeatMapGenerator
+from Visualizer import HeatMapGenerator
 
 
 def print_min_max_vals(my_dict):
@@ -16,6 +16,31 @@ def print_min_max_vals(my_dict):
 
     print(f"Maximum key-value pair: {max_value_pair}")
     print(f"Minimum key-value pair: {min_value_pair}")
+
+
+def plot_completion_steps(data):
+    import matplotlib.pyplot as plt
+    
+    fig, ax = plt.subplots()
+
+    # Loop through each sublist in the data
+    for idx, sublist in enumerate(data):
+        # Generate x-values based on the length of each sublist
+        x_values = list(range(len(sublist)))
+
+        # Plot each sublist as a line on the graph
+        ax.plot(x_values, sublist, label=f'Line {idx + 1}')
+
+    # Add legend to the plot to differentiate lines
+    ax.legend()
+
+    # Add titles and labels
+    ax.set_title('Plot of Lines from Lists of Different Lengths')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+
+    # Show the plot
+    plt.show()
 
 BLOCK_CAPACITY = 5
 
@@ -41,7 +66,7 @@ world = PdWorld(MAX_X, MAX_Y, BLOCK_CAPACITY, pickup_locations, dropoff_location
 print('initail world')
 world.display()
 #red_x, red_y, blue_x, blue_y, black_x, black_y, red_carry, blue_carry, black_carry, p1_blocks, p2_blocks, p3_blocks, d1_blocks, d2_blocks, d3_blocks
-initial_state = (2, 2, 2, 4, 2, 0, 0, 0, 0, 5, 5, 5, 0, 0, 0)
+initial_state = (red_agent[0][0], red_agent[0][1], blue_agent[0][0], blue_agent[0][1], black_agent[0][0], black_agent[0][1], 0, 0, 0, 5, 5, 5, 0, 0, 0)
     
 total_steps = 9000
 alpha = 0.3
@@ -76,8 +101,9 @@ experiment_1 = Experiment(world,
                         runs)
 
 
-q_table_x1_a = experiment_1.run_experiment()
+q_table_x1_a, paths_x1_a, completions_x1_a = experiment_1.run_experiment()
 
+plot_completion_steps(completions_x1_a)
 print_min_max_vals(q_table_x1_a)
 
 second_exploration_method_per_episode = [my_enums.ExplorationMethod.PGREEDY]
@@ -93,10 +119,11 @@ experiment_1 = Experiment(world,
                         runs)
 
 
-q_table_x1_b = experiment_1.run_experiment()
+q_table_x1_b, paths_x1_b, completions_x1_b = experiment_1.run_experiment()
 
 second_exploration_method_per_episode = [my_enums.ExplorationMethod.PEXPLOIT]
 
+plot_completion_steps(completions_x1_b)
 print_min_max_vals(q_table_x1_b)
 
 experiment_1 = Experiment(world,
@@ -110,8 +137,9 @@ experiment_1 = Experiment(world,
                         runs)
 
 
-q_table_x1_c = experiment_1.run_experiment()
+q_table_x1_c, paths_x1_c, completions_x1_c = experiment_1.run_experiment()
 
+plot_completion_steps(completions_x1_c)
 print_min_max_vals(q_table_x1_c)
 
 
@@ -134,7 +162,9 @@ experiment_2 = Experiment(world,
                         second_exploration_method_per_episode,
                         runs)
 
-q_table_x2 = experiment_2.run_experiment()
+q_table_x2, paths_x2, completions_x2 = experiment_2.run_experiment()
+
+plot_completion_steps(completions_x2)
 print_min_max_vals(q_table_x2)
 
 #EXPERIMENT 3
@@ -154,7 +184,9 @@ experiment_3_a = Experiment(world,
                         second_exploration_method_per_episode,
                         runs)
 
-q_table_x3_a = experiment_3_a.run_experiment()
+q_table_x3_a, paths_x3_a, completions_x3_a = experiment_3_a.run_experiment()
+
+plot_completion_steps(completions_x3_a)
 print_min_max_vals(q_table_x3_a)
 
 #second new alpha value
@@ -171,8 +203,9 @@ experiment_3_b = Experiment(world,
                         second_exploration_method_per_episode,
                         runs)
 
-q_table_x3_b = experiment_3_b.run_experiment()
+q_table_x3_b, paths_x3_b, completions_x3_b = experiment_3_b.run_experiment()
 
+plot_completion_steps(completions_x3_b)
 print_min_max_vals(q_table_x3_b)
 #EXPERIMENT 4
 
@@ -193,22 +226,22 @@ experiment_4 = Experiment(world,
                         track_terminals,
                         new_pickup_locations)
 
-q_table_x4 = experiment_4.run_experiment()
+q_table_x4, paths_x4, completions_x4 = experiment_4.run_experiment()
 
+plot_completion_steps(completions_x4)
 print_min_max_vals(q_table_x4)
+
 red_agent_index = 0
 blue_agent_index = 1
-black_agent_index = 3
+black_agent_index = 2
 
 
-heat_map_generator = HeatMapGenerator(red_agent_index, blue_agent_index, black_agent_index)
+visualizer = HeatMapGenerator(red_agent_index, blue_agent_index, black_agent_index)
 
-
-heat_map_generator.run_heat_maps(q_table_x1_a, 'Experiment 1a')
-heat_map_generator.run_heat_maps(q_table_x1_b, 'Experiment 1b')
-heat_map_generator.run_heat_maps(q_table_x1_c, 'Experiment 1c')
-heat_map_generator.run_heat_maps(q_table_x2, 'Experiment 2')
-heat_map_generator.run_heat_maps(q_table_x3_a, 'Experiment 3a')
-heat_map_generator.run_heat_maps(q_table_x3_b, 'Experiment 3b')
-heat_map_generator.run_heat_maps(q_table_x4, 'Experiment 4')
-
+visualizer.plot_paths(paths_x1_a)
+visualizer.plot_paths(paths_x1_b)
+visualizer.plot_paths(paths_x1_c)
+visualizer.plot_paths(paths_x2)
+visualizer.plot_paths(paths_x3_a)
+visualizer.plot_paths(paths_x3_b)
+visualizer.plot_paths(paths_x4)

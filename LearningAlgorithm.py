@@ -24,9 +24,9 @@ class LearningAlgorithm:
 
     def apply_algorithm(self, q_table, state, action, reward, next_state, actions, agent, world):
         
-        if(self.algorithm == my_enums.Algorithm.QLEARNING):
-            return self.q_formula(q_table, state, action, reward, next_state, actions, agent, world)
-        else:
+        #if(self.algorithm == my_enums.Algorithm.QLEARNING):
+        #    return self.q_formula(q_table, state, action, reward, next_state, actions, agent, world)
+        #else:
             return self.sarsa_formula(q_table, state, action, reward, next_state)
 
 
@@ -37,11 +37,20 @@ class LearningAlgorithm:
         # Compute the maximum Q-value for the next state from applicable actions
         max_next_q = np.max(next_q_value)
                 
-        return (1 - self.alpha) * q_table.get((state, action), 0) + self.alpha * (reward + self.gamma * max_next_q)
+        result = (1 - self.alpha) * q_table.get((state, action), 0) + self.alpha * (reward + self.gamma * max_next_q)
+            
+        return result
     
     def sarsa_formula(self, q_table, state, action, reward, next_state):
 
         next_q = q_table.get((next_state, action), 0)
         current_q = q_table.get((state, action), 0)
         
-        return current_q + self.alpha * (reward + self.gamma * next_q - current_q)
+        result = current_q + self.alpha * (reward + self.gamma * next_q - current_q)
+        
+        if(result == -np.inf):
+            print('bad one')
+            print(state)
+            print(next_state)
+            
+        return result
