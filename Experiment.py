@@ -39,10 +39,10 @@ class Experiment:
             return my_enums.Agent.RED
 
 
-    #Todo
-    # Visualization and analysis of results
-
     def run_experiment(self):
+        
+        self.world.set_agent_specific(False)
+        
         q_table = {}  # Use a dict for sparse storage
         
         paths = {agent: [] for agent in my_enums.Agent}
@@ -85,12 +85,6 @@ class Experiment:
                                                                    second_phase_policy)
                     reset = False
               
-                # Get available actions
-                #applicable_actions = [a for a in my_enums.Actions if self.world.is_action_applicable(a, agent)]
-                
-                #action = self.action_selector.determine_action(steps, state, applicable_actions, q_table, self.initial_steps, second_phase_policy)
-                # Execute the action, get the new state and reward
-
                 reward, done, *next_state = self.world.performAction(action, agent)
 
                 steps += 1
@@ -190,6 +184,8 @@ class Experiment:
         agent = my_enums.Agent.RED
         q_table = q_tables[agent_indicies[agent]]
         state = (self.initial_state[0], self.initial_state[1], self.initial_state[6], self.initial_state[9], self.initial_state[10], self.initial_state[11], self.initial_state[12], self.initial_state[13], self.initial_state[14])
+    
+        self.initial_state = state
         
         run_counter = 0
         
