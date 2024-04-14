@@ -24,6 +24,9 @@ class PdWorld:
         self.red_agent = red_agent
         self.movement_penalty = movement_penalty
         self.block_reward = block_reward
+        
+        self.agent_specific = False
+        
         self._init_locations()
         self._init_block_capacities()
         self._init_carry()
@@ -94,11 +97,20 @@ class PdWorld:
             self.dropoff_locations[2]: 0 
         }
     
+    def set_agent_specific(self, val):
+        self.agent_specific = val
+    
     def _init_carry(self):
         self.red_carry = 0
         self.blue_carry = 0
         self.black_carry = 0
 
+    def is_dropoff_full(self, index):
+        return self.dropoff_dictionary[self.dropoff_locations[index]] == 5
+    
+    def is_pickup_empty(self, index):
+        return self.pickup_dictionary[self.pickup_locations[index]] == 0
+    
     def display(self):
         self._init_locations()
         for row in self.grid:
@@ -215,7 +227,7 @@ class PdWorld:
 
             self.update_carry(agent, carry_status)
                     
-        return reward, terminal_state_reached, self.get_updated_state()
+        return reward, terminal_state_reached, self.get_updated_state(agent)
     
     def dropoffs_are_full(self):
         droppoff_full_1 = self.dropoff_dictionary[self.dropoff_locations[0]] == self.block_capacity
@@ -224,23 +236,61 @@ class PdWorld:
 
         return droppoff_full_1 and droppoff_full_2 and droppoff_full_3
     
-    def get_updated_state(self):
-        return (self.red_agent[0][0][0],
-                self.red_agent[0][0][1],
-                self.blue_agent[0][0][0],
-                self.blue_agent[0][0][1],
-                self.black_agent[0][0][0],
-                self.black_agent[0][0][1],
-                self.red_carry,
-                self.blue_carry,
-                self.black_carry,
-                self.pickup_dictionary[self.pickup_locations[0]],
-                self.pickup_dictionary[self.pickup_locations[1]],
-                self.pickup_dictionary[self.pickup_locations[2]],
-                self.dropoff_dictionary[self.dropoff_locations[0]],
-                self.dropoff_dictionary[self.dropoff_locations[1]],
-                self.dropoff_dictionary[self.dropoff_locations[2]]
-            )
+    def get_updated_state(self, agent):
+        
+        if(not self.agent_specific):
+            return (self.red_agent[0][0][0],
+                    self.red_agent[0][0][1],
+                    self.blue_agent[0][0][0],
+                    self.blue_agent[0][0][1],
+                    self.black_agent[0][0][0],
+                    self.black_agent[0][0][1],
+                    self.red_carry,
+                    self.blue_carry,
+                    self.black_carry,
+                    self.is_pickup_empty(0),
+                    self.is_pickup_empty(1),
+                    self.is_pickup_empty(2),
+                    self.is_dropoff_full(0),
+                    self.is_dropoff_full(1),
+                    self.is_dropoff_full(2),
+                )
+        else:
+            if(agent == my_enums.Agent.RED):
+                return (self.red_agent[0][0][0],
+                    self.red_agent[0][0][1],
+                    self.red_carry,
+                    self.is_pickup_empty(0),
+                    self.is_pickup_empty(1),
+                    self.is_pickup_empty(2),
+                    self.is_dropoff_full(0),
+                    self.is_dropoff_full(1),
+                    self.is_dropoff_full(2),
+                )
+            elif(agent == my_enums.Agent.BLUE):
+                return (
+                    self.blue_agent[0][0][0],
+                    self.blue_agent[0][0][1],
+                    self.blue_carry,
+                    self.is_pickup_empty(0),
+                    self.is_pickup_empty(1),
+                    self.is_pickup_empty(2),
+                    self.is_dropoff_full(0),
+                    self.is_dropoff_full(1),
+                    self.is_dropoff_full(2),
+                )
+            else: #BLACK
+                return (
+                    self.black_agent[0][0][0],
+                    self.black_agent[0][0][1],
+                    self.black_carry,
+                    self.is_pickup_empty(0),
+                    self.is_pickup_empty(1),
+                    self.is_pickup_empty(2),
+                    self.is_dropoff_full(0),
+                    self.is_dropoff_full(1),
+                    self.is_dropoff_full(2),
+                )
 
     def reset_initial_values(self):
         self.rows = self.init_rows 
