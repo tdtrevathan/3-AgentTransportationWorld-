@@ -243,7 +243,7 @@ visualizer.print_min_max_vals(q_table_x3_b_per_agent[0], "x3_a red")
 visualizer.print_min_max_vals(q_table_x3_b_per_agent[1], "x3_b blue")
 visualizer.print_min_max_vals(q_table_x3_b_per_agent[2], "x3_b black")
 
-visualizer.print_min_max_vals(q_table_x4_per_agent[0], "x1_a red")
+visualizer.print_min_max_vals(q_table_x4_per_agent[0], "x4 red")
 visualizer.print_min_max_vals(q_table_x4_per_agent[1], "x4 blue")
 visualizer.print_min_max_vals(q_table_x4_per_agent[2], "x4 black")
 
