@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import my_enums
-from prettytable import PrettyTable
+#from prettytable import PrettyTable
 
 class Visualizer:
 
@@ -121,18 +121,18 @@ class Visualizer:
         print(f"Maximum key-value pair: {max_value_pair}")
         print(f"Minimum key-value pair: {min_value_pair}")
 
-    def print_pretty_table(self, q_table):
-
-        # Create a PrettyTable object
-        table = PrettyTable()
-
-        # Add columns
-        table.field_names = ["State", "Action", "Q-Value"]
-
-        # Add rows to the table
-        for state_action, value in q_table.items():
-            state, action = state_action
-            table.add_row([state, action, round(value, 2)])  # Round for better readability
-
-        # Print the table
-        print(table)
+    #def print_pretty_table(self, q_table):
+#
+    #    # Create a PrettyTable object
+    #    table = PrettyTable()
+#
+    #    # Add columns
+    #    table.field_names = ["State", "Action", "Q-Value"]
+#
+    #    # Add rows to the table
+    #    for state_action, value in q_table.items():
+    #        state, action = state_action
+    #        table.add_row([state, action, round(value, 2)])  # Round for better readability
+#
+    #    # Print the table
+    #    print(table)

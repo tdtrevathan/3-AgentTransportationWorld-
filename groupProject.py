@@ -187,7 +187,7 @@ q_table_x4_per_agent, paths_x4_per_agent, completions_x4_per_agent = experiment_
 
 
 #COMBINED Q TABLE DISPLAY
-visualizer.print_pretty_table(q_table_x2)
+#visualizer.print_pretty_table(q_table_x2)
 
 visualizer.print_min_max_vals(q_table_x1_a, "x1_a")
 visualizer.print_min_max_vals(q_table_x1_b, "x1_b")
@@ -215,9 +215,9 @@ visualizer.plot_paths(paths_x4)
 
 #INDIVIDUAL Q TABLE DISPLAY
 
-visualizer.print_pretty_table(q_table_x2_per_agent[0])
-visualizer.print_pretty_table(q_table_x2_per_agent[1])
-visualizer.print_pretty_table(q_table_x2_per_agent[2])
+#visualizer.print_pretty_table(q_table_x2_per_agent[0])
+#visualizer.print_pretty_table(q_table_x2_per_agent[1])
+#visualizer.print_pretty_table(q_table_x2_per_agent[2])
 
 visualizer.print_min_max_vals(q_table_x1_a_per_agent[0], "x1_a red")
 visualizer.print_min_max_vals(q_table_x1_a_per_agent[1], "x1_a blue")
